@@ -11,8 +11,9 @@
     #define llog(token) {printf("LEX: %s \"%s\"\n", #token, yytext);}
 %}
 
-digit [0-9]
-int [+-]?{digit}+
+digit  [0-9]
+int    [+-]?{digit}+
+double [+-]?{digit}+\.{digit}*
 
 %%
 
@@ -21,6 +22,31 @@ int [+-]?{digit}+
     yylval.dval = strtod(yytext, NULL);
     return INT;
 }
+
+{double} {
+    llog(DOUBLE);
+    yylval.dval = strtod(yytext, NULL);
+    return DOUBLE;
+}
+
+"neg"        { llog(FUNC); yylval.ival = NEG_FUNC; return FUNC;}
+"abs"        { llog(FUNC); yylval.ival = ABS_FUNC; return FUNC;}
+"add"        { llog(FUNC); yylval.ival = ADD_FUNC; return FUNC;}
+"sub"        { llog(FUNC); yylval.ival = SUB_FUNC; return FUNC;}
+"mult"       { llog(FUNC); yylval.ival = MULT_FUNC; return FUNC;}
+"div"        { llog(FUNC); yylval.ival = DIV_FUNC; return FUNC;}
+"remainder"  { llog(FUNC); yylval.ival = REM_FUNC; return FUNC;}
+"exp"        { llog(FUNC); yylval.ival = EXP_FUNC; return FUNC;}
+"exp2"       { llog(FUNC); yylval.ival = EXP2_FUNC; return FUNC;}
+"pow"        { llog(FUNC); yylval.ival = POW_FUNC; return FUNC;}
+"log"        { llog(FUNC); yylval.ival = LOG_FUNC; return FUNC;}
+"sqrt"       { llog(FUNC); yylval.ival = SQRT_FUNC; return FUNC;}
+"cbrt"       { llog(FUNC); yylval.ival = CBRT_FUNC; return FUNC;}
+"hypot"      { llog(FUNC); yylval.ival = HYPOT_FUNC; return FUNC;}
+"max"        { llog(FUNC); yylval.ival = MAX_FUNC; return FUNC;}
+"min"        { llog(FUNC); yylval.ival = MIN_FUNC; return FUNC;}
+
+"quit"       { llog(QUIT); return QUIT;}
 
 [\n] {
     llog(EOL);
