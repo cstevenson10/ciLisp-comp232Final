@@ -4,21 +4,19 @@
     int yylex();
     void yyerror(char*, ...);
 %}
-  // NOTE: All terminals are stored in AST_NODES
-  // AST_NODES hold either AST_NUMBER or AST_FUNCTION in nodeptr->data.number/function
 
 %union {
     double dval;
     int ival;
-    struct ast_node *astNode;
-};
+    struct ast_node *astNode;  // NOTE: AST_NODES hold either AST_NUMBER or AST_FUNCTION
+};                             // in nodeptr->data.number/function
 
 %token <ival> FUNC
 %token <dval> INT DOUBLE
 %token QUIT EOL EOFT
 
-%type <astNode> s_expr number s_expr_list s_expr_section // TODO: Idk if sec. is supposed to be
-                                                         // here data structure for sec?
+%type <astNode> number s_expr f_expr s_expr_list s_expr_section  
+
 
 %%
 
@@ -50,7 +48,17 @@ program:
 
 
 s_expr:
-    QUIT {
+    f_expr {
+        ylog(s_expr, f_expr);
+        // Evaluate f_expr
+        $$ = eval($1);
+    }
+    | number {
+        ylog(s_expr, number);
+        // Evaluate number TODO: make sure number is AST_NODE*
+        $$ = eval($1);
+    }
+    | QUIT {
         ylog(s_expr, QUIT);
         exit(EXIT_SUCCESS);
     }
@@ -60,5 +68,42 @@ s_expr:
         $$ = NULL;
     };
 
+f_expr:
+    '(' FUNC s_expr_section ')' {                 // TODO: Should I be tokenizing parens?
+        ylog(f_expr, '(' FUNC s_expr_section ')');
+        // NOTE: I think all I need to do here is this
+        // 
+        $$ = createFunctionNode($2, $3);
+    };
+
+s_expr_section:
+    s_expr_list {
+        ylog(s_expr_section, s_expr_list);
+        $$ = $1
+    }
+    | { ylog(s_expr_section, <empty>); $$ = NULL; // TODO:Should I set this to null? 
+    };
+
+s_expr_list:
+    s_expr {
+        ylog(s_expr_list, s_expr);
+        $$ = $1;
+    }
+    | s_expr s_expr_list {
+        ylog(s_expr_list, s_expr s_expr_list);
+        // Add new s_expr to list
+        $$ = addExpressionToList($1, $2);
+    };
+
+number: 
+    INT {
+        ylog(number, INT);
+        $$ = createNumberNode($1, INT_TYPE);
+    }
+    |
+    DOUBLE {
+        ylog(number, DOUBLE);
+        $$ = createNumberNode($1, DOUBLE_TYPE);
+    };
 %%
 
