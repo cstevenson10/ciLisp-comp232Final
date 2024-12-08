@@ -51,12 +51,12 @@ s_expr:
     f_expr {
         ylog(s_expr, f_expr);
         // Evaluate f_expr
-        $$ = eval($1);
+        $$ = $1;
     }
     | number {
         ylog(s_expr, number);
         // Evaluate number TODO: make sure number is AST_NODE*
-        $$ = eval($1);
+        $$ = $1;
     }
     | QUIT {
         ylog(s_expr, QUIT);
@@ -79,7 +79,7 @@ f_expr:
 s_expr_section:
     s_expr_list {
         ylog(s_expr_section, s_expr_list);
-        $$ = $1
+        $$ = $1;
     }
     | { ylog(s_expr_section, <empty>); $$ = NULL; // TODO:Should I set this to null? 
     };
