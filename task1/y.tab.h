@@ -44,7 +44,9 @@
      DOUBLE = 260,
      QUIT = 261,
      EOL = 262,
-     EOFT = 263
+     EOFT = 263,
+     LPAREN = 264,
+     RPAREN = 265
    };
 #endif
 /* Tokens.  */
@@ -54,6 +56,8 @@
 #define QUIT 261
 #define EOL 262
 #define EOFT 263
+#define LPAREN 264
+#define RPAREN 265
 
 
 
@@ -67,7 +71,7 @@ typedef union YYSTYPE
     struct ast_node *astNode;  // NOTE: AST_NODES hold either AST_NUMBER or AST_FUNCTION
 }
 /* Line 1529 of yacc.c.  */
-#line 71 "y.tab.h"
+#line 75 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

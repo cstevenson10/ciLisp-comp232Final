@@ -13,7 +13,7 @@
 
 %token <ival> FUNC
 %token <dval> INT DOUBLE
-%token QUIT EOL EOFT
+%token QUIT EOL EOFT LPAREN RPAREN
 
 %type <astNode> number s_expr f_expr s_expr_list s_expr_section  
 

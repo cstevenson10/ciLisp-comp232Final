@@ -33,7 +33,10 @@ keywords "neg"|"abs" |"add"|"sub"|"mult"|"div"|"remainder"|"exp"|"exp2"|"pow"|"l
 
 {keywords} { llog(FUNC); yylval.ival = resolveFunc(yytext); return FUNC;}
 
-"quit"       { llog(QUIT); return QUIT;}
+"quit"     { llog(QUIT); return QUIT;}
+
+"("        {llog(LPAREN); return LPAREN;}
+")"        {llog(RPAREN); return RPAREN;}
 
 [\n] {
     llog(EOL);
