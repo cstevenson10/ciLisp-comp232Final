@@ -35,8 +35,8 @@ keywords "neg"|"abs" |"add"|"sub"|"mult"|"div"|"remainder"|"exp"|"exp2"|"pow"|"l
 
 "quit"     { llog(QUIT); return QUIT;}
 
-"("        {llog(LPAREN); return LPAREN;}
-")"        {llog(RPAREN); return RPAREN;}
+ //"("        { llog(LPAREN); return LPAREN;}
+ //")"        { llog(RPAREN); return RPAREN;}
 
 [\n] {
     llog(EOL);
