@@ -2,6 +2,7 @@
 
 #define RED             "\033[31m"
 #define RESET_COLOR     "\033[0m"
+#define FUNC_COUNT 17
 
 // yyerror:
 // Something went so wrong that the whole program should crash.
@@ -85,6 +86,8 @@ FUNC_TYPE resolveFunc(char *funcName)
     return CUSTOM_FUNC;
 }
 
+
+
 AST_NODE *createNumberNode(double value, NUM_TYPE type)
 {
     AST_NODE *node;
@@ -97,13 +100,13 @@ AST_NODE *createNumberNode(double value, NUM_TYPE type)
         exit(1);
     }
 
-    // TODO complete the function
-    // Populate "node", the AST_NODE * created above with the argument data.
-    // node is a generic AST_NODE, don't forget to specify it is of type NUMBER_NODE
+    // Populate node atributes
+    node->type = NUM_NODE_TYPE;
+    node->data.number.type = type;
+    node->data.number.value = value;
 
     return node;
 }
-
 
 AST_NODE *createFunctionNode(FUNC_TYPE func, AST_NODE *opList)
 {
@@ -117,20 +120,380 @@ AST_NODE *createFunctionNode(FUNC_TYPE func, AST_NODE *opList)
         exit(1);
     }
 
-    // TODO complete the function
     // Populate the allocated AST_NODE *node's data
+    node->type = FUNC_NODE_TYPE;
+    node->data.function.func = func;
+    node->data.function.opList = opList;
 
     return node;
 }
 
 AST_NODE *addExpressionToList(AST_NODE *newExpr, AST_NODE *exprList)
 {
-    // TODO complete the function
-    // at newExpr to the exprList as the head. return the resulting list's head.
+    // Add new expression as head
+    newExpr->next = exprList;
 
-    return NULL; // stub
+    return newExpr;
 }
 
+int getOperandCound(AST_NODE *opList, int number) {
+    int count = 0;
+    AST_NODE *cur = opList;
+
+    while (cur != NULL) {
+        cur = cur->next;
+        count++;
+    }
+
+    return count;
+}
+
+/*
+ * 1 if int, 0 if not
+ */
+int isInt(double num) {
+    if ((num - trunc(num)) < .000001) {
+        return 1;
+    }
+    return 0;
+}
+
+
+RET_VAL evalNeg(AST_NODE *operand) {
+    if (operand == NULL) {
+        printf("WARNING: neg called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (operand->next->next != NULL) {
+        printf("WARNING: neg called with extra (ignored) operands\n");
+    }
+
+    RET_VAL retval;
+
+    // Populate retVal
+    retval.type = operand->data.number.type;
+    retval.value = (-1) * (operand->data.number.value);
+
+    return retval;
+}
+
+RET_VAL evalAbs(AST_NODE *operand) {
+    if (operand == NULL) {
+        printf("WARNING: abs called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (operand->next->next != NULL) {
+        printf("WARNING: abs called with extra (ignored) operands\n");
+    }
+
+    return (RET_VAL) {operand->data.number.type, fabs(operand->data.number.value)};
+}
+
+RET_VAL evalAdd(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: add called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next == NULL) {
+        return (RET_VAL) opList->data.number;
+    }
+
+    AST_NODE *appends = opList;
+    double sum;
+
+    while (appends != NULL) {
+        sum += opList->data.number.value;
+    }
+
+    if (isInt(sum)) {
+        return (RET_VAL) {INT_TYPE, sum};
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, sum};
+}
+
+RET_VAL evalSub(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: sub called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next == NULL) {
+        printf("WARNING: sub called with only one operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next->next != NULL) {
+        printf("WARNING: sub called with extra (ignored) operands\n");
+    }
+
+    RET_VAL retval;
+
+    retval.value = opList->data.number.value - opList->next->data.number.value;
+
+    if (isInt(retval.value)){
+        retval.type = INT_TYPE;
+        return retval;
+    }
+
+    retval.type = DOUBLE_TYPE;
+    return retval;
+}
+
+RET_VAL evalMult(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: mult called with no operands! nan returned\n");
+        return (RET_VAL) {INT_TYPE, 1.0};
+    }
+    else if (opList->next == NULL) {
+        return (RET_VAL) opList->data.number;
+    }
+
+    double product;
+    AST_NODE *factor = opList;
+    RET_VAL retval;
+    retval.type = INT_TYPE;
+
+    while (factor != NULL) {
+        product *= factor->data.number.value;
+        factor = factor->next;
+    }
+
+    retval.value = product;
+
+    // Check protuct type
+    if (isInt(product)) {
+        return retval;
+    }
+
+    retval.type = DOUBLE_TYPE;
+    return retval;
+}
+
+RET_VAL evalDiv(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: div called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next == NULL) {
+        printf("WARNING: div called with only one operand! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next->next != NULL) {
+        printf("WARNING: div called with extra (ignored) operands\n");
+    }
+
+
+    double div;
+    AST_NUMBER op1 = opList->data.number;
+    AST_NUMBER op2 = opList->next->data.number;
+
+    div = op1.value / op2.value;
+
+    // Integer divison
+    if (op1.type == INT_TYPE && op2.type == INT_TYPE) {
+        return (RET_VAL) {INT_TYPE, trunc(div)};
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, div};
+}
+
+RET_VAL evalRem(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: remainder called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next == NULL) {
+        printf("WARNING: remainder called with only one operand! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next->next != NULL) {
+        printf("WARNING: remainder called with extra (ignored) operands\n");
+    }
+
+
+    double rem = fmod(opList->data.number.value, opList->next->data.number.value);
+
+    rem = fabs(rem);
+
+    if(isInt(rem)) {
+        return (RET_VAL) {INT_TYPE, rem};
+    }
+    else {
+        return (RET_VAL) {DOUBLE_TYPE, rem};
+    }
+}
+
+RET_VAL evalExp(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: exp called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next != NULL) {
+        printf("WARNING: exp called with extra (ignored) operands\n");
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, exp(opList->data.number.value)};
+}
+
+RET_VAL evalExp2(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: exp2 called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next != NULL) {
+        printf("WARNING: exp2 called with extra (ignored) operands\n");
+    }
+
+    RET_VAL retval;
+    double val = opList->data.number.value;
+
+    if (val < 1 || trunc(val) != val) {
+        retval.type = DOUBLE_TYPE;
+    }
+    else {
+        retval.type = INT_TYPE;
+    }
+
+    retval.value = exp2(val);
+
+    return retval;
+}
+
+RET_VAL evalPow(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: pow called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next == NULL) {
+        printf("WARNING: pow called with only one operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next->next != NULL) {
+        printf("WARNING: pow called with extra (ignored) operands\n");
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, pow(opList->data.number.value,
+                                       opList->next->data.number.value)};
+}
+
+RET_VAL evalLog(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: log called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next != NULL) {
+        printf("WARNING: log called with extra (ignored) operands!\n");
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, log(opList->data.number.value)};
+}
+
+RET_VAL evalSqrt(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: sqrt called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next != NULL) {
+        printf("WARNING: sqrt called with extra (ignored) operands!\n");
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, sqrt(opList->data.number.value)};
+}
+
+RET_VAL evalCbrt(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: cbrt called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+    else if (opList->next != NULL) {
+        printf("WARNING: cbrt called with extra (ignored) operands!\n");
+    }
+
+    return (RET_VAL) {DOUBLE_TYPE, cbrt(opList->data.number.value)};
+}
+
+RET_VAL evalHypot(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: hypot called with no operands! 0 returned\n");
+        return ZERO_RET_VAL;
+    }
+
+    RET_VAL retval;
+    retval.type = DOUBLE_TYPE;
+    
+    AST_NODE *cur = opList;
+    double sum;
+
+    while (cur != NULL) {
+        sum += pow(cur->data.number.value, 2);
+    }
+
+    retval.value = sqrt(sum);
+
+    return retval;
+}
+
+/*
+ * Min op: 2
+ * Max op: none
+ */
+RET_VAL evalMax(AST_NODE *opList) {
+    if (opList == NULL) {
+        printf("WARNING: max called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+
+    NUM_TYPE type = opList->data.number.type;
+    double max = opList->data.number.value;
+
+    AST_NODE *ptr = opList->next;
+
+    while (ptr != NULL) {
+        if (max < fmax(max, ptr->data.number.value)) {
+            // Set new max and type
+            max = ptr->data.number.value;
+            type = ptr->data.number.type;
+        }
+
+        ptr = ptr->next;
+    }
+
+    return (RET_VAL) {type, max};
+}
+
+
+/*
+ * Min op: 2
+ * Max op: none
+ */
+RET_VAL evalMin(AST_NODE *opList) {
+    // Check for opperands
+    if (opList == NULL) {
+        printf("WARNING: min called with no operands! nan returned\n");
+        return NAN_RET_VAL;
+    }
+
+    NUM_TYPE type = opList->data.number.type;
+    double min = opList->data.number.value;
+
+    AST_NODE *ptr = opList->next;
+
+    while (ptr != NULL) {
+        if (min > fmin(min, ptr->data.number.value)) {
+            // Set new min and type
+            min = ptr->data.number.value;
+            type = ptr->data.number.type;
+
+        }
+        ptr = ptr->next;
+    }
+
+    return (RET_VAL) {type, min};
+}
+
+/*
+ * NOTE: I believe because yacc is bottom up parser it will deal with
+ * inner most s-expr first
+ * */
 RET_VAL evalFuncNode(AST_NODE *node)
 {
     if (!node)
@@ -138,13 +501,85 @@ RET_VAL evalFuncNode(AST_NODE *node)
         yyerror("NULL ast node passed into evalFuncNode!");
         return NAN_RET_VAL; // unreachable but kills a clang-tidy warning
     }
+    // Check for valid function type (need to do bcs using look-up table)
+    else if (node->data.function.func < 0 ||
+             node->data.function.func > CUSTOM_FUNC) { // last element in FUNC_TYPE enum
+        yyerror("Invalid function type in node passed into evalFuncNode!");
+        return NAN_RET_VAL; 
+    }
 
-    // TODO complete the function
-    // HINT:
-    // the helper functions that it calls will need to be defined above it
-    // because they are not declared in the .h file (and should not be)
+    RET_VAL (*functionTable[FUNC_COUNT])(AST_NODE *) = {
+		evalNeg,
+		evalAbs,
+		evalSub,
+		evalAdd,
+		evalMult,
+		evalDiv,
+		evalRem,
+		evalExp,
+		evalExp2,
+		evalPow,
+		evalLog,
+		evalSqrt,
+		evalCbrt,
+		evalHypot,
+		evalMax,
+		evalMin
+    };
 
-    return NAN_RET_VAL;
+    // Call corrisponding function  NOTE: Passing in opList
+    RET_VAL retval = functionTable[node->data.function.func](node->data.function.opList);
+    
+    // Free node
+    freeNode(node);
+
+    return retval;
+
+    /*
+    //  could use a sorta look-up table here but thats for another time
+    // Decide function
+    switch (node->data.function.func) {
+        case NEG_FUNC:
+            return evalNeg(node);
+        case ABS_FUNC:
+            return evalAbs(node);
+        case ADD_FUNC:
+            return evalAdd(node);
+        case SUB_FUNC:
+            return evalSub(node);
+        case MULT_FUNC:
+            return evalMult(node);
+        case DIV_FUNC:
+            return evalDiv(node);
+        case REM_FUNC:
+            return evalRem(node);
+        case EXP_FUNC:
+            return evalExp(node);
+        case EXP2_FUNC:
+            return evalExp2(node);
+        case POW_FUNC:
+            return evalPow(node);
+        case LOG_FUNC:
+            return evalLog(node);
+        case SQRT_FUNC:
+            return evalSqrt(node);
+        case CBRT_FUNC:
+            return evalCbrt(node);
+        case HYPOT_FUNC:
+            return evalHypot(node);
+        case MAX_FUNC:
+            return evalMax(node);
+        case MIN_FUNC:
+            return evalMin(node);
+        case CUSTOM_FUNC:
+            yyerror("Custom func not setup yet\n");
+        defualt:
+            yyerror("Error in evalFuncNode(), node.data.function.func likely not set\n");
+    }
+
+
+    return NAN_RET_VAL; // Paranotic
+    */
 }
 
 RET_VAL evalNumNode(AST_NODE *node)
@@ -168,7 +603,14 @@ RET_VAL eval(AST_NODE *node)
         return NAN_RET_VAL;
     }
 
-    // TODO complete the function
+    // Number node
+    if (node->type == NUM_NODE_TYPE) {
+        return evalNumNode(node);
+    }
+    // Funcion node
+    else {
+        return evalFuncNode(node);
+    }
 
     return NAN_RET_VAL;
 }
