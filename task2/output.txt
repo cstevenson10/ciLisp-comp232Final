@@ -1,0 +1,614 @@
+Processing INPUTS/task_1/abs.cilisp...
+
+> (abs 1)
+Integer : 1
+
+> (abs 1.2)
+Double : 1.200000
+
+> (abs -3)
+Integer : 3
+
+> (abs 0)
+Integer : 0
+
+> (abs 0.0)
+Double : 0.000000
+
+> (abs -1.4)
+Double : 1.400000
+
+> (abs)
+WARNING: abs called with no operands! nan returned
+Double : nan
+
+> (abs -1 2)
+WARNING: abs called with extra (ignored) operands
+Integer : 1
+
+> quit
+Processing INPUTS/task_1/add.cilisp...
+
+> (add)
+WARNING: add called with no operands! nan returned
+Integer : 0
+
+> (add 1)
+Integer : 1
+
+> (add 1.0)
+Double : 1.000000
+
+> (add 1 2 3 4 5)
+Integer : 15
+
+> (add 1 -2 3 -4 5 -6)
+Integer : -3
+
+> (add 0.0 1 -2 3 -4 5 -6)
+Double : -3.000000
+
+> (add 1 -1.0)
+Double : 0.000000
+
+> quit
+Processing INPUTS/task_1/cbrt.cilisp...
+
+> (cbrt)
+WARNING: cbrt called with no operands! nan returned
+Double : nan
+
+> (cbrt 0)
+Double : 0.000000
+
+> (cbrt 0.0)
+Double : 0.000000
+
+> (cbrt -1)
+Double : -1.000000
+
+> (cbrt -1.0)
+Double : -1.000000
+
+> (cbrt 1)
+Double : 1.000000
+
+> (cbrt 1.0)
+Double : 1.000000
+
+> (cbrt 27)
+Double : 3.000000
+
+> (cbrt 27.0)
+Double : 3.000000
+
+> (cbrt 4)
+Double : 1.587401
+
+> (cbrt 1 2)
+WARNING: cbrt called with extra (ignored) operands!
+Double : 1.000000
+
+> quit
+Processing INPUTS/task_1/composition.cilisp...
+
+> (exp (log 1))
+Double : 1.000000
+
+> (exp2 (div 1 2.0))
+Double : 1.414214
+
+> (cbrt (pow 3 3))
+Double : 3.000000
+
+> (cbrt (pow 3 6))
+Double : 9.000000
+
+> (log (exp (log (exp 1))))
+Double : 1.000000
+
+> (sub (mult 1 2 3 4) (add 1 2 3 4))
+Integer : 14
+
+> (sub (mult 1 2 3 -4.0) (add -1 -2 -3 -4))
+Double : -14.000000
+
+> (hypot (sqrt (div 100 7.0)) (mult 6 (sqrt (div 100.0 7))))
+Double : 22.990681
+
+> (hypot (sqrt (div 100 7.0)) (sqrt (mult 6 (div 100.0 7))))
+Double : 10.000000
+
+> (add 1 (add 2 (add 3 (add 4 (add 5 (add 6 (add 7)))))))
+Integer : 28
+
+> (add 1 (add 2 (add 3 (add 4 (add 5 (add 6 (sub 0 -7.0)))))))
+Double : 28.000000
+
+> quit
+Processing INPUTS/task_1/div.cilisp...
+
+> (div)
+WARNING: div called with no operands! nan returned
+Double : nan
+
+> (div 1)
+WARNING: div called with only one operand! nan returned
+Double : nan
+
+> (div 1.0)
+WARNING: div called with only one operand! nan returned
+Double : nan
+
+> (div 1 2)
+Integer : 0
+
+> (div 1.0 2)
+Double : 0.500000
+
+> (div 2 1)
+Integer : 2
+
+> (div 2.0 1)
+Double : 2.000000
+
+> (div 5 2.0)
+Double : 2.500000
+
+> (div -20.0 4)
+Double : -5.000000
+
+> (div 1 2 3 4)
+WARNING: div called with extra (ignored) operands
+Integer : 0
+
+> (div 1 2 3)
+WARNING: div called with extra (ignored) operands
+Integer : 0
+
+> (div 5.0 2 3)
+WARNING: div called with extra (ignored) operands
+Double : 2.500000
+
+> quit
+Processing INPUTS/task_1/exp.cilisp...
+
+> (exp)
+WARNING: exp called with no operands! nan returned
+Double : nan
+
+> (exp 1)
+Double : 2.718282
+
+> (exp -1)
+Double : 0.367879
+
+> (exp 5.0)
+Double : 148.413159
+
+> (exp -2.0)
+Double : 0.135335
+
+> (exp 1 2)
+WARNING: exp called with extra (ignored) operands
+Double : 2.718282
+
+> quit
+Processing INPUTS/task_1/exp2.cilisp...
+
+> (exp2)
+WARNING: exp2 called with no operands! nan returned
+Double : nan
+
+> (exp2 1)
+Integer : 2
+
+> (exp2 1.0)
+Double : 2.000000
+
+> (exp2 0)
+Integer : 1
+
+> (exp2 0.0)
+Double : 1.000000
+
+> (exp2 0.5)
+Double : 1.414214
+
+> (exp2 -2)
+Double : 0.250000
+
+> (exp2 20.0)
+Double : 1048576.000000
+
+> (exp2 1 2)
+WARNING: exp2 called with extra (ignored) operands
+Integer : 2
+
+> quit
+Processing INPUTS/task_1/hypot.cilisp...
+
+> (hypot)
+WARNING: hypot called with no operands! 0 returned
+Integer : 0
+
+> (hypot 1)
+Double : 1.000000
+
+> (hypot 1.0)
+Double : 1.000000
+
+> (hypot 3 4)
+Double : 5.000000
+
+> (hypot -3 4)
+Double : 5.000000
+
+> (hypot -30 -40.0)
+Double : 50.000000
+
+> (hypot 4 4 7)
+Double : 9.000000
+
+> (hypot 7.0 4 4.0)
+Double : 9.000000
+
+> (hypot 12 13 14)
+Double : 22.561028
+
+> (hypot 5 5 5)
+Double : 8.660254
+
+> (hypot -5 -5.0 (sqrt 25))
+Double : 8.660254
+
+> (hypot 0 0 0.0 -3 0 0 0 0 4 0.0 -0.0 12)
+Double : 13.000000
+
+> quit
+Processing INPUTS/task_1/log.cilisp...
+
+> (log)
+WARNING: log called with no operands! nan returned
+Double : nan
+
+> (log 1)
+Double : 0.000000
+
+> (log 0)
+Double : -inf
+
+> (log -1)
+Double : -nan
+
+> (log 0.0)
+Double : -inf
+
+> (log -1.0)
+Double : -nan
+
+> (log (exp 1))
+Double : 1.000000
+
+> (div (log 27) (log 3))
+Double : 3.000000
+
+> (div (log 27.0) (log 3))
+Double : 3.000000
+
+> (log 1 2)
+WARNING: log called with extra (ignored) operands!
+Double : 0.000000
+
+> quit
+Processing INPUTS/task_1/max.cilisp...
+
+> (max)
+WARNING: max called with no operands! nan returned
+Double : nan
+
+> (max 1)
+Integer : 1
+
+> (max -1)
+Integer : -1
+
+> (max 1.0)
+Double : 1.000000
+
+> (max 232311.121)
+Double : 232311.121000
+
+> (max 1 2 3 4 5 6 7 8.0 9)
+Integer : 9
+
+> (max 1 2 25.0 -26.0 12)
+Double : 25.000000
+
+> quit
+Processing INPUTS/task_1/min.cilisp...
+
+> (min)
+WARNING: min called with no operands! nan returned
+Double : nan
+
+> (min 1)
+Integer : 1
+
+> (min 0.0)
+Double : 0.000000
+
+> (min 0)
+Integer : 0
+
+> (min -1 2 -3 4 -5 6)
+Integer : -5
+
+> (min -1.0 -12.0 12)
+Double : -12.000000
+
+> quit
+Processing INPUTS/task_1/mult.cilisp...
+
+> (mult)
+WARNING: mult called with no operands! nan returned
+Integer : 1
+
+> (mult 1)
+Integer : 1
+
+> (mult 1.0)
+Double : 1.000000
+
+> (mult -1)
+Integer : -1
+
+> (mult -1 -1.0)
+Double : 1.000000
+
+> (mult 1 -2 3 -4 5)
+Integer : 120
+
+> (mult -1.0 2 -3.0 4 -5)
+Double : -120.000000
+
+> quit
+Processing INPUTS/task_1/neg.cilisp...
+
+> (neg 5)
+Integer : -5
+
+> (neg 5.5)
+Double : -5.500000
+
+> (neg -5.0)
+Double : 5.000000
+
+> (neg -5)
+Integer : 5
+
+> (neg)
+WARNING: neg called with no operands! nan returned
+Double : nan
+
+> (neg 1 2)
+WARNING: neg called with extra (ignored) operands
+Integer : -1
+
+> quit
+Processing INPUTS/task_1/number.cilisp...
+
+> 0
+Integer : 0
+
+> 0.
+Double : 0.000000
+
+> 1
+Integer : 1
+
+> 1.
+Double : 1.000000
+
+> 0.0
+Double : 0.000000
+
+> 0.5
+Double : 0.500000
+
+> +0
+Integer : 0
+
+> +10.55
+Double : 10.550000
+
+> -12.87
+Double : -12.870000
+
+> -12.
+Double : -12.000000
+
+> -12
+Integer : -12
+
+> .34
+[31mWARNING: Invalid character >>.<<
+[0mInteger : 34
+Processing INPUTS/task_1/pow.cilisp...
+
+> (pow)
+WARNING: pow called with no operands! nan returned
+Double : nan
+
+> (pow 1)
+WARNING: pow called with only one operands! nan returned
+Double : nan
+
+> (pow 1.0)
+WARNING: pow called with only one operands! nan returned
+Double : nan
+
+> (pow 1 1)
+Integer : 1
+
+> (pow 1 1.0)
+Double : 1.000000
+
+> (pow 2 1)
+Integer : 2
+
+> (pow 2.1 1)
+Double : 2.100000
+
+> (pow -2 0.5)
+Double : -nan
+
+> (pow -2 0)
+Integer : 1
+
+> (pow -2.0 0.0)
+Double : 1.000000
+
+> (pow -2.0 0)
+Double : 1.000000
+
+> (pow 3 3)
+Integer : 27
+
+> (pow 3.0 3)
+Double : 27.000000
+
+> (pow 27 (div 1 3.0))
+Double : 3.000000
+
+> (pow 1 2 3)
+WARNING: pow called with extra (ignored) operands
+Integer : 1
+
+> quit
+Processing INPUTS/task_1/remainder.cilisp...
+
+> (remainder)
+WARNING: remainder called with no operands! nan returned
+Double : nan
+
+> (remainder 1)
+WARNING: remainder called with only one operand! nan returned
+Double : nan
+
+> (remainder 0)
+WARNING: remainder called with only one operand! nan returned
+Double : nan
+
+> (remainder -1.0)
+WARNING: remainder called with only one operand! nan returned
+Double : nan
+
+> (remainder 1 2)
+Integer : 1
+
+> (remainder 2 1)
+Integer : 0
+
+> (remainder 2.5 1)
+Double : 0.500000
+
+> (remainder 2 3)
+Integer : 2
+
+> (remainder -6 10)
+Integer : 4
+
+> (remainder -6.0 10.0)
+Double : 4.000000
+
+> (remainder -6.0 -10.0)
+Double : 4.000000
+
+> (remainder 1 2 3)
+WARNING: remainder called with extra (ignored) operands
+Integer : 1
+
+> (remainder 23 7 10)
+WARNING: remainder called with extra (ignored) operands
+Integer : 2
+
+> quit
+Processing INPUTS/task_1/sqrt.cilisp...
+
+> (sqrt)
+WARNING: sqrt called with no operands! nan returned
+Double : nan
+
+> (sqrt 1)
+Double : 1.000000
+
+> (sqrt 1.0)
+Double : 1.000000
+
+> (sqrt 0)
+Double : 0.000000
+
+> (sqrt 0.0)
+Double : 0.000000
+
+> (sqrt -1)
+Double : -nan
+
+> (sqrt -1.0)
+Double : -nan
+
+> (sqrt 4)
+Double : 2.000000
+
+> (sqrt 170.0)
+Double : 13.038405
+
+> (sqrt 2)
+Double : 1.414214
+
+> (sqrt 1 2)
+WARNING: sqrt called with extra (ignored) operands!
+Double : 1.000000
+
+> quit
+Processing INPUTS/task_1/sub.cilisp...
+
+> (sub)
+WARNING: sub called with no operands! nan returned
+Double : nan
+
+> (sub 1)
+WARNING: sub called with only one operands! nan returned
+Double : nan
+
+> (sub 1.0)
+WARNING: sub called with only one operands! nan returned
+Double : nan
+
+> (sub 1 2)
+Integer : -1
+
+> (sub 2 1)
+Integer : 1
+
+> (sub 2 -1)
+Integer : 3
+
+> (sub 2.0 1)
+Double : 1.000000
+
+> (sub 2.0 -1)
+Double : 3.000000
+
+> (sub 1 1.0)
+Double : 0.000000
+
+> (sub 2.0 1.0)
+Double : 1.000000
+
+> (sub 1 2 3)
+WARNING: sub called with extra (ignored) operands
+Integer : -1
+
+> quit

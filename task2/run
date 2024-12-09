@@ -1,0 +1,11 @@
+#!/bin/sh -x
+# Rather than type the following lines over and over,
+# you can run them in this script called run.
+# Make sure you type: chmod 700 run 
+# This will make the script executable so you can
+# just type "run" by itself.
+
+yacc -d cilisp.y
+lex cilisp.l
+cat cilisp.c lex.yy.c y.tab.c > t.c
+gcc t.c -o cilisp
