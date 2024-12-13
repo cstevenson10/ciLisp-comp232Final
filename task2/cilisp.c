@@ -4,6 +4,10 @@
 #define RESET_COLOR     "\033[0m"
 #define FUNC_COUNT 17
 
+RET_VAL evalScopeNode(AST_NODE *node);
+RET_VAL evalSymNode(AST_NODE *node);
+RET_VAL callNodeTypeEval(AST_NODE *node);
+
 // yyerror:
 // Something went so wrong that the whole program should crash.
 // You should basically never call this unless an allocation fails.
@@ -87,6 +91,23 @@ FUNC_TYPE resolveFunc(char *funcName)
 }
 
 
+AST_NODE *createAstNode(AST_NODE_TYPE type) {
+    AST_NODE *node;
+    size_t nodeSize;
+
+    nodeSize = sizeof(AST_NODE);
+    if ((node = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+        exit(1);
+    }
+
+    node->type = type;
+
+    return node;
+
+}
+
 
 AST_NODE *createNumberNode(double value, NUM_TYPE type)
 {
@@ -108,6 +129,15 @@ AST_NODE *createNumberNode(double value, NUM_TYPE type)
     return node;
 }
 
+// Sets each member of childLists' parent
+void setParents(AST_NODE *parent, AST_NODE *childList) {
+    AST_NODE *cur = childList;
+    while (cur != NULL) {
+        cur->parent = parent;
+        cur = cur->next;
+    }
+}
+
 AST_NODE *createFunctionNode(FUNC_TYPE func, AST_NODE *opList)
 {
     AST_NODE *node;
@@ -125,26 +155,95 @@ AST_NODE *createFunctionNode(FUNC_TYPE func, AST_NODE *opList)
     node->data.function.func = func;
     node->data.function.opList = opList;
 
+    setParents(node, opList);
+
     return node;
+}
+
+AST_NODE *createScopeNode(SYMBOL_TABLE_NODE *symTable, AST_NODE *s_expr)
+{
+    AST_NODE *node;
+    node = createAstNode(SCOPE_NODE_TYPE);
+
+    // Set parent child relation between node and s_expr
+    node->data.scope.child = s_expr;
+
+    // NOTE: Directions state do each of these pg 31:
+    s_expr->parent = node;
+    s_expr->symbolTable = symTable;
+    SYMBOL_TABLE_NODE *cur = symTable;
+    while (cur != NULL) {
+        cur->value->parent = s_expr; 
+        cur = cur->next;
+    }
+
+    return node;
+}
+
+AST_NODE *createSymbolNode(char *name) {
+    AST_NODE *node = createAstNode(SYM_NODE_TYPE);
+
+    node->data.symbol.id = name;
+
+    return node;
+}
+
+SYMBOL_TABLE_NODE *createSymbolTableNode(char *id, AST_NODE *val) {
+    SYMBOL_TABLE_NODE *node;
+    size_t nodeSize;
+
+    nodeSize = sizeof(SYMBOL_TABLE_NODE);
+    if ((node = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+        exit(1);
+    }
+
+    node->id = id;
+    node->value = val;
+
+    return node;
+}
+
+SYMBOL_TABLE_NODE *findSymbol(char* name, SYMBOL_TABLE_NODE *symList) {
+    SYMBOL_TABLE_NODE *cur = symList;
+
+    //printf("---------findSymbol\n");
+    while (cur != NULL) {
+        if (strcmp(name, cur->id) == 0) {
+            // Symbol found
+            return cur;
+        }
+
+        cur = cur->next;
+    }
+
+    // Not found
+    return NULL;
+}
+
+SYMBOL_TABLE_NODE *addSymbolToList(SYMBOL_TABLE_NODE *sym, SYMBOL_TABLE_NODE *symList) {
+    // Check if symbol is defined already (in current scope)
+    SYMBOL_TABLE_NODE *node = findSymbol(sym->id, symList); 
+    if (node == NULL)
+    {
+        // Symbol not yet defined; Add new symbol as head
+        sym->next = symList;
+        return sym;
+    }
+    else {
+        // Symbol already defined; Discard new value definition
+        printf("WARNING: multiple (ignored) definitions of %s\n", sym->id); 
+        node->value = sym->value; //NOTE: yacc parses right let_elem first so we have to keep the 
+                                  // duplicate and get ride of first def
+        return symList;
+    }
 }
 
 AST_NODE *addExpressionToList(AST_NODE *newExpr, AST_NODE *exprList)
 {
     // Add new expression as head
     newExpr->next = exprList;
-
-    /*
-    AST_NODE *cur = exprList;
-
-    // Iterate to last expression on list
-    while (cur->next != NULL) {
-        cur = cur->next;
-    }
-
-    // Append new expression
-    cur->next = newExpr;
-    */
-
     return newExpr;
 }
 
@@ -528,14 +627,31 @@ AST_NODE *resolveOperandList(AST_NODE *opList) {
     AST_NODE *op = opList;
 
     while (op != NULL) {
-        if (op->type == FUNC_NODE_TYPE) {
-            // Replace .data.func with value of resolved func
-            op->data.number = evalFuncNode(op);
-            op->type = NUM_NODE_TYPE;
+        switch(op->type) {
+            case FUNC_NODE_TYPE:
+                // Replace .data.func with value of resolved func
+                op->data.number = evalFuncNode(op);
+                op->type = NUM_NODE_TYPE;
+                // Move to next
+                op = op->next;
+                break;
+            case SCOPE_NODE_TYPE:
+                // Let expression
+                op->data.number = evalScopeNode(op);
+                op->type = NUM_NODE_TYPE;
+                op = op->next;
+                break;
+            case SYM_NODE_TYPE:
+                op->data.number = evalSymNode(op);
+                op->type = NUM_NODE_TYPE;
+                op = op->next;
+                break;
+            case NUM_NODE_TYPE:
+                op = op->next;
         }
-        op = op->next;
     }
     return opList;
+
 }
 
 /*
@@ -644,24 +760,88 @@ RET_VAL evalNumNode(AST_NODE *node)
     return (RET_VAL) {node->data.number.type, node->data.number.value};
 }
 
-RET_VAL eval(AST_NODE *node)
+//TODO: may be error here
+RET_VAL evalSymNode(AST_NODE *node) {
+    char* id = node->data.symbol.id;
+    SYMBOL_TABLE_NODE *sym;
+
+    // If node has a symbol table search it
+    if ((sym = findSymbol(id, node->symbolTable)) == NULL) {
+        // Symbol not found in current node symbol table search parents'
+        //printf("--%s NOT found in (%p) symtable\n",id,node);
+        AST_NODE *parent = node->parent;
+        while (parent != NULL) {
+            if((sym = findSymbol(id, parent->symbolTable)) != NULL) {
+                // Symbol found
+                break;
+            }
+            //printf("--%s NOT found in (%p) symtable\n",id,parent);
+            parent = parent->parent;
+        }
+    }
+
+    if (sym == NULL) {
+        // Symbol not found
+        printf("WARNING: Undefined symbol \"%s\" evaluated! NAN returned!\n", id);
+        return NAN_RET_VAL;
+    }
+
+    //printf("--%s found!!\n",id);
+
+    // Symbol found
+    AST_NODE *value = sym->value;
+
+    if (value->type != NUM_NODE_TYPE) {
+        // Comepute and replace non-number node with number-node
+        value->data.number = (AST_NUMBER) callNodeTypeEval(value);
+        value->type = NUM_NODE_TYPE;
+    }
+
+    //printf("---------evalsymNode-----3\n");
+
+    return (RET_VAL) value->data.number;
+}
+
+RET_VAL evalScopeNode(AST_NODE *node) {
+    // Check for no child
+    if (node->data.scope.child == NULL) {
+        printf("ERROR : evalScopeNode called with NULL child\n");
+        return NAN_RET_VAL; // Paranotic, shouldn't pass yacc
+    }
+
+    return callNodeTypeEval(node->data.scope.child);
+}
+
+RET_VAL callNodeTypeEval(AST_NODE *node)
 {
     if (!node)
+    {
+        yyerror("NULL ast node passed into callNodeTypeEval!");
+        return NAN_RET_VAL;
+    }
+
+    switch (node->type) {
+        case NUM_NODE_TYPE:   return evalNumNode(node);
+        case FUNC_NODE_TYPE:  return evalFuncNode(node);
+        case SYM_NODE_TYPE:   return evalSymNode(node);
+        case SCOPE_NODE_TYPE: return evalScopeNode(node);
+    }
+
+    return NAN_RET_VAL;
+}
+
+// I don't think I need to helper function callNodeTypeEval() as eval is only ever called on the root
+RET_VAL eval(AST_NODE *root)
+{
+    if (!root)
     {
         yyerror("NULL ast node passed into eval!");
         return NAN_RET_VAL;
     }
 
-    // Number node
-    if (node->type == NUM_NODE_TYPE) {
-        return evalNumNode(node);
-    }
-    // Funcion node
-    else {
-        return evalFuncNode(node);
-    }
+    //setParents(root); NOTE: Isn't this alread done when creating scope node?
 
-    return NAN_RET_VAL;
+    return callNodeTypeEval(root);
 }
 
 // prints the type and value of a RET_VAL
@@ -699,20 +879,8 @@ void freeNode(AST_NODE *node)
         return;
     }
 
-    // TODO complete the function
+    // TODO: Update for symbols
 
-    // look through the AST_NODE struct, decide what
-    // referenced data should have freeNode called on it
-    // (hint: it might be part of an s_expr_list, with more
-    // nodes following it in the list)
-
-    // if this node is FUNC_TYPE, it might have some operands
-    // to free as well (but this should probably be done in
-    // a call to another function, named something like
-    // freeFunctionNode)
-
-    // and, finally,
-    
     if (node->type == FUNC_NODE_TYPE) {
         freeOperands(node->data.function.opList);
     }

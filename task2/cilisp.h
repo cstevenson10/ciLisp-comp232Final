@@ -13,7 +13,7 @@
 #define ZERO_RET_VAL (RET_VAL){INT_TYPE, 0}
 
 
-#define BISON_FLEX_LOG_PATH "bison_flex.log" // TODO: Does this file exist?
+#define BISON_FLEX_LOG_PATH "bison_flex.log" 
 FILE* read_target;
 FILE* flex_bison_log_file;
 size_t yyreadline(char **lineptr, size_t *n, FILE *stream, size_t n_terminate);
@@ -68,22 +68,40 @@ typedef struct ast_function {
     struct ast_node *opList;
 } AST_FUNCTION;
 
+typedef struct {
+    char *id;
+} AST_SYMBOL;
+
+typedef struct {
+    struct ast_node *child;
+} AST_SCOPE;
+
 
 typedef enum ast_node_type {
     NUM_NODE_TYPE,
-    FUNC_NODE_TYPE
+    FUNC_NODE_TYPE,
+    SYM_NODE_TYPE,
+    SCOPE_NODE_TYPE
 } AST_NODE_TYPE;
-
 
 typedef struct ast_node {
     AST_NODE_TYPE type;
+    struct ast_node *parent;
+    struct symbol_table_node *symbolTable;
     union {
         AST_NUMBER number;
         AST_FUNCTION function;
+        AST_SYMBOL symbol;
+        AST_SCOPE scope;
     } data;
     struct ast_node *next;
 } AST_NODE;
 
+typedef struct symbol_table_node { 
+    char *id; 
+    struct ast_node *value;
+    struct symbol_table_node *next;
+} SYMBOL_TABLE_NODE;
 
 AST_NODE *createNumberNode(double value, NUM_TYPE type);
 AST_NODE *createFunctionNode(FUNC_TYPE func, AST_NODE *opList);
@@ -96,3 +114,14 @@ void printRetVal(RET_VAL val);
 void freeNode(AST_NODE *node);
 
 #endif
+
+// TODO: evalSymNode() go to symbol table and search for var, go to parent symbol table and search etc
+//    - but where is symbol table?? node->parent(scopeNode?)->symbol table?
+// Somewhere in there I have to connect all the children to their parent scope to know what scope they have 
+//
+//
+// Is a scope nodes parent the outer scope!??!?! I think yes
+// 
+// Also 
+//
+//

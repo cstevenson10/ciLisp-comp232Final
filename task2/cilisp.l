@@ -13,6 +13,8 @@ digit  [0-9]
 int    [+-]?{digit}+
 double [+-]?{digit}+\.{digit}*
 keywords "neg"|"abs"|"add"|"sub"|"mult"|"div"|"remainder"|"exp"|"exp2"|"pow"|"log"|"sqrt"|"cbrt"|"hypot"|"max"|"min"
+letter [a-zA-Z_$]
+word {letter}+({digit}|{letter})*
 
 %%
 
@@ -32,8 +34,13 @@ keywords "neg"|"abs"|"add"|"sub"|"mult"|"div"|"remainder"|"exp"|"exp2"|"pow"|"lo
 
 "quit"     { llog(QUIT); return QUIT;}
 
+"let"      { llog(LET); return LET;}
+
+{word}     { llog(SYMBOL); yylval.id = strdup(yytext); return SYMBOL;}  // TODO: make sure to free 
+
 "("        { llog(LPAREN); return LPAREN;}
 ")"        { llog(RPAREN); return RPAREN;}
+
 
 [\n] {
     llog(EOL);
